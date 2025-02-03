@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cálculo de Determinante</title>
+    <title>Cálculo de Determinante e Solução de Sistemas Lineares</title>
     <style>
         /* Estilos para centralizar o conteúdo na página */
 body {
@@ -21,14 +21,14 @@ body {
     width: 80%; /* Ocupa 80% da largura da tela */
     max-width: 900px; /* Largura máxima do conteúdo */
     padding: 20px;
-    background-color: rgb(224, 255, 228); /* Cor de fundo do contêiner */
+    background-color: #ddffe2; /* Cor de fundo do contêiner */
     border-radius: 10px; /* Bordas arredondadas */
     box-shadow: 0px 4px 6px rgb(0, 0, 0); /* Sombras sutis */
     box-sizing: border-box; /* Para incluir o padding no cálculo do tamanho */
 }
 
 h1 {
-    font-size: 36px;
+    font-size: 30px;
     color: #1f2e23;
 }
 
@@ -187,33 +187,63 @@ padding: 5px;            /* Espaçamento interno */
 border: 1px solid #3b4836;  /* Borda cinza clara */
 border-radius: 4px;      /* Cantos arredondados */
 }
-
-    </style>
+.result-section {
+margin-top: 20px;
+}
+.determinant {
+font-size: 16px;
+font-family: monospace;
+margin-bottom: 20px;
+padding: 10px;
+background-color: #ffffff;
+border-radius: 4px;
+}
+.content {
+    flex: 1;
+    padding: 20px;
+}
+footer {
+    background: #f4fbf3;
+    color: rgb(0, 0, 0);
+    text-align: center;
+    padding: 10px;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    font-size: 15px;
+}
+</style>
 </head>
 <body>
     <div class="container">
-        <h1>Cálculo de determinante</h1>
+        <h1>Cálculo de Determinante e Solução de Sistemas Lineares</h1>
         
         <div class="dimension-control">
             <div>
-                <label for="size">Tamanho da Matriz:</label>
+                <label for="size">Dimensão do sistema:</label>
                 <input type="number" id="size" class="dimension-input" min="1" max="10" value="3" onchange="updateMatrixSize()">
             </div>
         </div>
 
         <div class="matrix-wrapper">
-            <div class="matrix-grid brackets" id="matrix">
+            <div class="matrix-grid brackets" id="matrixA">
                 <!-- Matriz será gerada dinamicamente -->
+            </div>
+            <div class="vector-b brackets" id="vectorB">
+                <!-- Vetor b será gerado dinamicamente -->
             </div>
         </div>
 
         <div id="errorMessage" class="error-message"></div>
         
-        <button type="button" onclick="calculateDeterminant()" id="calcButton">Calcular</button>
+        <button type="button" onclick="solveSystem()" id="solveButton">Resolver</button>
         <div class="loading" id="loadingSpinner"></div>
 
-        <h2>Resultado:</h2>
-        <pre id="result"></pre>
+        <div class="result-section">
+            <div id="determinant" class="determinant"></div>
+            <h2>Solução:</h2>
+            <pre id="solution"></pre>
+        </div>
     </div>
 
     <script>
@@ -223,9 +253,13 @@ border-radius: 4px;      /* Cantos arredondados */
         }
 
         function generateMatrix(size) {
-            const matrix = document.getElementById('matrix');
-            matrix.innerHTML = '';
+            const matrixA = document.getElementById('matrixA');
+            const vectorB = document.getElementById('vectorB');
+            
+            matrixA.innerHTML = '';
+            vectorB.innerHTML = '';
 
+            // Gerar matriz A
             for (let i = 0; i < size; i++) {
                 const row = document.createElement('div');
                 row.className = 'matrix-row';
@@ -241,7 +275,18 @@ border-radius: 4px;      /* Cantos arredondados */
                     row.appendChild(input);
                 }
                 
-                matrix.appendChild(row);
+                matrixA.appendChild(row);
+            }
+
+            // Gerar vetor b
+            for (let i = 0; i < size; i++) {
+                const input = document.createElement('input');
+                input.type = 'number';
+                input.className = 'matrix-cell';
+                input.step = 'any';
+                input.dataset.row = i;
+                input.addEventListener('input', validateInput);
+                vectorB.appendChild(input);
             }
         }
 
@@ -282,7 +327,7 @@ border-radius: 4px;      /* Cantos arredondados */
                     const input = document.querySelector(`.matrix-cell[data-row="${i}"][data-col="${j}"]`);
                     const value = parseFloat(input.value);
                     if (isNaN(value)) {
-                        throw new Error(`Valor inválido na posição [${i+1},${j+1}]`);
+                        throw new Error(`Valor inválido na posição [${i+1},${j+1}] da matriz A`);
                     }
                     row.push(value);
                 }
@@ -291,36 +336,70 @@ border-radius: 4px;      /* Cantos arredondados */
             return matrix;
         }
 
-        async function calculateDeterminant() {
+        function getVectorValues() {
+            const size = parseInt(document.getElementById('size').value);
+            const vector = [];
+            
+            for (let i = 0; i < size; i++) {
+                const input = document.querySelector(`.vector-b .matrix-cell[data-row="${i}"]`);
+                const value = parseFloat(input.value);
+                if (isNaN(value)) {
+                    throw new Error(`Valor inválido na posição ${i+1} do vetor b`);
+                }
+                vector.push(value);
+            }
+            return vector;
+        }
+
+        async function solveSystem() {
             hideError();
-            const button = document.getElementById("calcButton");
+            const button = document.getElementById("solveButton");
             const spinner = document.getElementById("loadingSpinner");
+            const solutionDiv = document.getElementById("solution");
+            const determinantDiv = document.getElementById("determinant");
             
             try {
                 const matrix = getMatrixValues();
+                const b = getVectorValues();
 
                 button.disabled = true;
                 spinner.style.display = 'block';
+                solutionDiv.innerHTML = '';
+                determinantDiv.innerHTML = '';
 
-                const response = await fetch('/calcular', {
+                const response = await fetch('/calculate', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ matrix })
+                    body: JSON.stringify({ matrix, b })
                 });
 
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Erro ao resolver o sistema');
+                }
+
                 const result = await response.json();
-                
-                if (result.error) {
-                    showError(result.error);
-                } else {
-                    document.getElementById('result').textContent = 
-                        `O determinante da matriz é: ${result.determinante}`;
+
+                // Mostrar determinante
+                if (result.determinant !== undefined) {
+                    determinantDiv.innerHTML = `Determinante = ${result.determinant}`;
+                }
+
+                // Mostrar solução
+                if (result.solution) {
+                    result.solution.forEach((sol, index) => {
+                        setTimeout(() => {
+                            const lineElement = document.createElement('div');
+                            lineElement.classList.add('solution-line');
+                            lineElement.textContent = sol;
+                            solutionDiv.appendChild(lineElement);
+                        }, index * 200);
+                    });
                 }
             } catch (error) {
                 showError(error.message);
-                document.getElementById("result").textContent = `Erro: ${error.message}`;
             } finally {
                 button.disabled = false;
                 spinner.style.display = 'none';
@@ -332,5 +411,10 @@ border-radius: 4px;      /* Cantos arredondados */
             updateMatrixSize();
         });
     </script>
+     <footer>
+        <p>Projeto acadêmico desenvolvido por alunos do curso para fins educacionais.</p>
+        <p>Curso de Análise e Desenvolvimento de Sistemas - 1º semestre</p>
+        <p>&copy; 2025 IFPA </p>
+    </footer>
 </body>
 </html>
