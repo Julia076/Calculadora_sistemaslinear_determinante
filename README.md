@@ -1,4 +1,5 @@
 📌 Projeto: Interface Web com Flask
+
 Este projeto consiste em uma aplicação web simples utilizando Flask, onde a interface é renderizada a partir do arquivo index.html, localizado na pasta templates.
 
 --> Estrutura do Projeto
