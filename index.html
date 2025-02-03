@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cálculo de Determinante</title>
+    <style>
+        /* Estilos para centralizar o conteúdo na página */
+body {
+    display: flex;
+    justify-content: center; /* Centraliza horizontalmente */
+    align-items: center; /* Centraliza verticalmente */
+    height: 100vh; /* Ocupa toda a altura da janela */
+    margin: 0; /* Remove margens padrão */
+    font-family: Arial, sans-serif; /* Fonte padrão */
+    background-color: #f4fbf3; /* Cor de fundo */
+    text-align: center; /* Centraliza o texto */
+}
+
+.container {
+    width: 80%; /* Ocupa 80% da largura da tela */
+    max-width: 900px; /* Largura máxima do conteúdo */
+    padding: 20px;
+    background-color: rgb(224, 255, 228); /* Cor de fundo do contêiner */
+    border-radius: 10px; /* Bordas arredondadas */
+    box-shadow: 0px 4px 6px rgb(0, 0, 0); /* Sombras sutis */
+    box-sizing: border-box; /* Para incluir o padding no cálculo do tamanho */
+}
+
+h1 {
+    font-size: 36px;
+    color: #1f2e23;
+}
+
+label {
+    font-size: 16px;
+    margin-bottom: 10px;
+    display: block;
+    font-weight: bold;
+font-family: Arial, sans-serif;
+font-size: 20px;  /* Tamanho maior para as perguntas */
+color: #333;  /* Cor para o texto */
+}
+
+textarea {
+    width: 100%; /* Ocupa toda a largura disponível */
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #e9ffe6;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+button {
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #3b5e44;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+button:hover {
+    background-color: #293f2f;
+}
+
+ /* Ajustes no estilo das caixas de texto */
+textarea:focus, textarea {
+font-size: 18px;
+line-height: 1.6;
+}
+
+ /* CSS para animação */
+.solution-line {
+opacity: 0;
+transform: translateY(10px);
+animation: slideIn 0.5s forwards;
+margin-bottom: 5px;
+}
+
+@keyframes slideIn {
+from {
+    opacity: 0;
+    transform: translateY(10px);
+}
+to {
+    opacity: 1;
+    transform: translateY(0);
+}
+}
+
+/* Adiciona a "rolagem" no conteúdo */
+pre {
+background-color: #ffffff;
+padding: 10px;
+border-radius: 4px;
+white-space: pre-wrap;
+word-wrap: break-word;
+max-height: 300px;
+overflow-y: auto;
+font-size: 18px; /* Aumenta o tamanho da fonte aqui */
+line-height: 1.5; /* Espaçamento entre as linhas */
+}
+
+.solution-line {
+font-size: 20px; /* Tamanho da fonte para cada linha da solução */
+font-family: Arial, sans-serif; /* Fonte para o texto */
+}
+/* Container principal que envolve toda a estrutura da matriz */
+.matrix-container {
+margin: 20px 0;  /* Espaçamento de 20px acima e abaixo do container */
+}
+
+/* Controles da matriz (inputs de dimensão) */
+.matrix-controls {
+margin-bottom: 20px;  /* Espaçamento abaixo dos controles */
+}
+
+/* Grade da matriz - estrutura principal */
+.matrix-grid {
+display: inline-flex;      /* Permite que a matriz fique em linha */
+flex-direction: column;    /* Organiza as linhas verticalmente */
+gap: 10px;                /* Espaçamento entre as linhas da matriz */
+padding: 20px;            /* Espaçamento interno */
+border: 2px solid #3b5e44; /* Borda verde escura */
+border-radius: 5px;        /* Cantos arredondados */
+background: #fff;          /* Fundo branco */
+}
+
+/* Linha individual da matriz */
+.matrix-row {
+display: flex;    /* Organiza as células horizontalmente */
+gap: 10px;        /* Espaçamento entre células */
+}
+
+/* Célula individual da matriz */
+.matrix-cell {
+width: 60px;              /* Largura fixa para cada célula */
+height: 40px;             /* Altura fixa para cada célula */
+text-align: center;       /* Centraliza o texto */
+border: 1px solid #ccc;   /* Borda cinza clara */
+border-radius: 4px;       /* Cantos levemente arredondados */
+font-size: 16px;          /* Tamanho da fonte */
+}
+
+/* Estado de foco da célula */
+.matrix-cell:focus {
+border-color: #4c7256;    /* Borda verde escura quando selecionada */
+outline: none;            /* Remove outline padrão */
+box-shadow: 0 0 5px rgba(208, 255, 220, 0.3); /* Sombra suave */
+}
+
+/* Estilo do vetor b */
+.vector-b {
+display: inline-flex;      /* Permite que fique em linha com a matriz */
+flex-direction: column;    /* Organiza células verticalmente */
+gap: 10px;                /* Espaçamento entre células */
+margin-left: 20px;        /* Espaçamento à esquerda (separa da matriz A) */
+padding: 20px;            /* Espaçamento interno */
+border: 2px solid #3b5e44; /* Borda verde escura */
+border-radius: 5px;        /* Cantos arredondados */
+background: #fff;          /* Fundo branco */
+}
+
+/* Wrapper que mantém matriz A e vetor b alinhados */
+.matrix-wrapper {
+display: flex;             /* Layout flexível */
+align-items: center;       /* Alinha itens verticalmente */
+justify-content: center;   /* Centraliza horizontalmente */
+}
+
+/* Controles de dimensão da matriz */
+.dimension-control {
+display: flex;            /* Layout flexível */
+gap: 20px;               /* Espaçamento entre controles */
+margin-bottom: 20px;     /* Espaçamento inferior */
+justify-content: center; /* Centraliza horizontalmente */
+}
+
+/* Input para controle de dimensões */
+.dimension-input {
+width: 60px;             /* Largura fixa */
+text-align: center;      /* Centraliza texto */
+padding: 5px;            /* Espaçamento interno */
+border: 1px solid #3b4836;  /* Borda cinza clara */
+border-radius: 4px;      /* Cantos arredondados */
+}
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Cálculo de determinante</h1>
+        
+        <div class="dimension-control">
+            <div>
+                <label for="size">Tamanho da Matriz:</label>
+                <input type="number" id="size" class="dimension-input" min="1" max="10" value="3" onchange="updateMatrixSize()">
+            </div>
+        </div>
+
+        <div class="matrix-wrapper">
+            <div class="matrix-grid brackets" id="matrix">
+                <!-- Matriz será gerada dinamicamente -->
+            </div>
+        </div>
+
+        <div id="errorMessage" class="error-message"></div>
+        
+        <button type="button" onclick="calculateDeterminant()" id="calcButton">Calcular</button>
+        <div class="loading" id="loadingSpinner"></div>
+
+        <h2>Resultado:</h2>
+        <pre id="result"></pre>
+    </div>
+
+    <script>
+        function updateMatrixSize() {
+            const size = parseInt(document.getElementById('size').value);
+            generateMatrix(size);
+        }
+
+        function generateMatrix(size) {
+            const matrix = document.getElementById('matrix');
+            matrix.innerHTML = '';
+
+            for (let i = 0; i < size; i++) {
+                const row = document.createElement('div');
+                row.className = 'matrix-row';
+                
+                for (let j = 0; j < size; j++) {
+                    const input = document.createElement('input');
+                    input.type = 'number';
+                    input.className = 'matrix-cell';
+                    input.step = 'any';
+                    input.dataset.row = i;
+                    input.dataset.col = j;
+                    input.addEventListener('input', validateInput);
+                    row.appendChild(input);
+                }
+                
+                matrix.appendChild(row);
+            }
+        }
+
+        function validateInput(event) {
+            const input = event.target;
+            const value = input.value.trim();
+            
+            if (value === '') {
+                input.classList.remove('invalid-input');
+                return;
+            }
+
+            const number = parseFloat(value);
+            if (isNaN(number)) {
+                input.classList.add('invalid-input');
+            } else {
+                input.classList.remove('invalid-input');
+            }
+        }
+
+        function showError(message) {
+            const errorElement = document.getElementById('errorMessage');
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+        }
+
+        function hideError() {
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+
+        function getMatrixValues() {
+            const size = parseInt(document.getElementById('size').value);
+            const matrix = [];
+            
+            for (let i = 0; i < size; i++) {
+                const row = [];
+                for (let j = 0; j < size; j++) {
+                    const input = document.querySelector(`.matrix-cell[data-row="${i}"][data-col="${j}"]`);
+                    const value = parseFloat(input.value);
+                    if (isNaN(value)) {
+                        throw new Error(`Valor inválido na posição [${i+1},${j+1}]`);
+                    }
+                    row.push(value);
+                }
+                matrix.push(row);
+            }
+            return matrix;
+        }
+
+        async function calculateDeterminant() {
+            hideError();
+            const button = document.getElementById("calcButton");
+            const spinner = document.getElementById("loadingSpinner");
+            
+            try {
+                const matrix = getMatrixValues();
+
+                button.disabled = true;
+                spinner.style.display = 'block';
+
+                const response = await fetch('/calcular', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ matrix })
+                });
+
+                const result = await response.json();
+                
+                if (result.error) {
+                    showError(result.error);
+                } else {
+                    document.getElementById('result').textContent = 
+                        `O determinante da matriz é: ${result.determinante}`;
+                }
+            } catch (error) {
+                showError(error.message);
+                document.getElementById("result").textContent = `Erro: ${error.message}`;
+            } finally {
+                button.disabled = false;
+                spinner.style.display = 'none';
+            }
+        }
+
+        // Inicializar a matriz quando a página carregar
+        document.addEventListener('DOMContentLoaded', () => {
+            updateMatrixSize();
+        });
+    </script>
+</body>
+</html>
